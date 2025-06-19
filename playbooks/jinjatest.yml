@@ -1,0 +1,16 @@
+---
+- name: get server info using jinja2 template
+  hosts: all
+  tasks:
+  - name: template
+    template:
+      src: info.j2
+      dest: /opt/serverinfo
+
+  - name: Display contents of /etc/serverinfo
+    shell: cat /opt/serverinfo
+    register: server_info_output
+
+  - name: Show server info output
+    debug:
+      msg: "{{ server_info_output.stdout_lines }}"

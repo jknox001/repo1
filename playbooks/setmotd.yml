@@ -1,0 +1,8 @@
+---
+- name: Deploy MOTD file from jinja2 template in templates folder
+  hosts: all
+  tasks:
+    - name: use template
+      template:
+        src: mymotd.j2
+        dest: /etc/motd

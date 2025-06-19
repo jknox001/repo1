@@ -1,0 +1,88 @@
+---
+- name: Install Jenkins on RHEL 9
+  hosts: all
+  tasks:
+    - name: Install Java 17 (required for Jenkins 2.514)
+      dnf:
+        name: java-17-openjdk-devel
+        state: present
+
+    - name: Set Java 17 as default
+      command: alternatives --set java /usr/lib/jvm/java-17-openjdk-17*/bin/java
+      when: ansible_cmdline.java is defined
+
+    - name: Add Jenkins repository
+      get_url:
+        url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
+        dest: /etc/yum.repos.d/jenkins.repo
+        mode: '0644'
+
+    - name: Import Jenkins GPG key
+      rpm_key:
+        key: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+        state: present
+      ignore_errors: yes
+
+    - name: Install Jenkins
+      dnf:
+        name: jenkins
+        state: present
+        enablerepo: jenkins
+
+    - name: Check if port 8080 is free
+      wait_for:
+        port: 8080
+        state: stopped
+        timeout: 10
+      ignore_errors: yes
+
+    - name: Fix Jenkins permissions
+      file:
+        path: "{{ item }}"
+        owner: jenkins
+        group: jenkins
+        recurse: yes
+      loop:
+        - /var/lib/jenkins
+        - /var/log/jenkins
+        - /var/cache/jenkins
+
+    - name: Increase systemd timeout for Jenkins
+      lineinfile:
+        path: /usr/lib/systemd/system/jenkins.service
+        regexp: '^TimeoutStartSec='
+        line: 'TimeoutStartSec=300'
+        state: present
+      notify: Reload systemd
+
+    - name: Install firewalld
+      dnf:
+        name: firewalld
+        state: present
+
+    - name: Start and enable firewalld
+      service:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: Open port 8080 in firewall
+      ansible.posix.firewalld:
+        port: 8080/tcp
+        permanent: yes
+        immediate: yes
+        state: enabled
+
+    - name: Start and enable Jenkins service
+      service:
+        name: jenkins
+        state: started
+        enabled: yes
+      register: jenkins_service
+      retries: 5
+      delay: 10
+      until: jenkins_service is not failed
+
+  handlers:
+    - name: Reload systemd
+      command: systemctl daemon-reload

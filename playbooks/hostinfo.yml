@@ -1,0 +1,36 @@
+---
+- name: Gather information about RHEL 9 server
+  hosts: all
+  tasks:
+
+    - name: Gather all system facts
+      ansible.builtin.setup:
+
+    - name: Show OS details
+      ansible.builtin.debug:
+        var: ansible_distribution
+
+    - name: Show OS version
+      ansible.builtin.debug:
+        var: ansible_distribution_version
+
+    - name: Show hostname
+      ansible.builtin.debug:
+        var: ansible_hostname
+
+    - name: Show IP addresses
+      ansible.builtin.debug:
+        var: ansible_all_ipv4_addresses
+
+    - name: Show total RAM
+      ansible.builtin.debug:
+        var: ansible_memtotal_mb
+
+    - name: Show CPU info
+      ansible.builtin.debug:
+        var: ansible_processor
+
+    - name: Show default IPv4 interface
+      ansible.builtin.debug:
+        var: ansible_default_ipv4.interface
+

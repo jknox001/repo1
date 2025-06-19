@@ -1,0 +1,13 @@
+---
+- name: put startupscript in /etc/profile.d
+  hosts: all
+  tasks:
+    - name: remove redhat insights
+      dnf:
+        name: insights-client
+        state: absent
+
+    - name: copy
+      copy:
+        src: /home/Jeff/playbooks/content/startup.sh
+        dest: /etc/profile.d/startup.sh

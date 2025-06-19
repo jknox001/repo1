@@ -1,0 +1,12 @@
+---
+- name: make user ansible5
+  hosts: all
+  tasks:
+    - name: make user and add to wheel
+      user:
+        name: ansible5
+        groups: wheel
+
+    - name: set password for user
+      shell: echo hello | passwd --stdin ansible5
+

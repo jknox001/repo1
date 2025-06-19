@@ -1,0 +1,21 @@
+---
+- name: make user ansible3 or other defined by username variable below. uses ansible-vault to store password. ansible vault edit vault to get in and edit it, then --ask-vault-pass when running playbook.
+  hosts: all
+  vars_files:
+    - /home/Jeff/playbooks/vault  
+  vars:
+    username: ansible4  
+  tasks:
+    - name: make user "{{username}}"
+      user:
+        name: "{{username}}"
+
+    - name: give passwordless sudo access by making drop-in file
+      lineinfile:
+        path: "/etc/sudoers.d/{{username}}"
+        create: yes
+        line: "{{username}} ALL=(ALL) NOPASSWD: ALL"  
+
+    - name: set password for user from ansible vault
+      shell: echo "{{pwhash}}" | passwd --stdin "{{username}}"
+
